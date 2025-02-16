@@ -2,12 +2,15 @@ import React, { useEffect, useState } from "react";
 import { FileText, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { parseFile } from "lib/fileParser";
+import type { TextFormatOptions } from "lib/textFormatter";
 
 interface FileViewerProps {
   file: File | null;
+  formatOptions?: Partial<TextFormatOptions>;
 }
 
-const FileViewer: React.FC<FileViewerProps> = ({ file }) => {
+const FileViewer: React.FC<FileViewerProps> = ({ file, formatOptions }) => {
   const [content, setContent] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
@@ -23,34 +26,22 @@ const FileViewer: React.FC<FileViewerProps> = ({ file }) => {
       setError("");
 
       try {
-        const reader = new FileReader();
-
-        reader.onload = (e) => {
-          const text = e.target?.result as string;
-          setContent(text);
-          setLoading(false);
-        };
-
-        reader.onerror = () => {
-          setError("Failed to read file");
-          setLoading(false);
-        };
-
-        if (file.type.includes("text") || file.name.endsWith(".txt")) {
-          reader.readAsText(file);
-        } else {
-          setError("Unsupported file format. Please upload a text file.");
-          setLoading(false);
-        }
+        const result = await parseFile(file, formatOptions);
+        setContent(result.formattedContent);
+        setLoading(false);
       } catch (err) {
-        console.log("🚀 ~ readFile ~ err:", err);
-        setError("An error occurred while reading the file");
+        console.error("Error reading file:", err);
+        setError(
+          err instanceof Error
+            ? err.message
+            : "An error occurred while reading the file"
+        );
         setLoading(false);
       }
     };
 
     readFile();
-  }, [file]);
+  }, [file, formatOptions]);
 
   if (!file) {
     return (

@@ -1,6 +1,9 @@
+"use client";
+
 import React from "react";
 import { FileText, Github } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "components/ui/button";
+import Link from "next/link";
 
 const Header = () => {
   return (
@@ -27,9 +30,13 @@ const Header = () => {
             <Button
               variant="outline"
               size="icon"
-              onClick={() =>
-                window.open("https://github.com/LeVSon1507", "_blank")
-              }
+              onClick={() => {
+                <Link
+                  href={'https://github.com/LeVSon1507"'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                />;
+              }}
             >
               <Github className="h-5 w-5" />
             </Button>

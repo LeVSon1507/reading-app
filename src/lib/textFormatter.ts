@@ -10,12 +10,13 @@ export interface TextFormatOptions {
   normalizeUnicode?: boolean; // Chuẩn hóa Unicode
   preserveIndentation?: boolean; // Giữ nguyên thụt đầu dòng
   languageHint?: "vi" | "en" | "auto"; // Gợi ý ngôn ngữ để xử lý tốt hơn
+  useAI: boolean;
 }
 
 /**
  * Default formatting options
  */
-const DEFAULT_FORMAT_OPTIONS: TextFormatOptions = {
+export const DEFAULT_FORMAT_OPTIONS: TextFormatOptions = {
   lineWidth: 80,
   preserveParagraphs: true,
   removeExtraSpaces: true,
@@ -24,6 +25,7 @@ const DEFAULT_FORMAT_OPTIONS: TextFormatOptions = {
   normalizeUnicode: true,
   preserveIndentation: true,
   languageHint: "auto",
+  useAI: true,
 };
 
 /**

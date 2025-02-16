@@ -98,6 +98,7 @@ const Controls: React.FC<ControlsProps> = ({
                 <Button
                   variant="outline"
                   size="icon"
+                  suppressHydrationWarning
                   onClick={() => setFontSize(Math.max(8, fontSize - 2))}
                 >
                   <Minus className="w-4 h-4" />
@@ -122,6 +123,7 @@ const Controls: React.FC<ControlsProps> = ({
                 <Button
                   variant="outline"
                   size="icon"
+                  suppressHydrationWarning
                   onClick={() => setFontSize(Math.min(32, fontSize + 2))}
                 >
                   <Plus className="w-4 h-4" />

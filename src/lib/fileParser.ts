@@ -1,11 +1,13 @@
-import pdfParse from "pdf-parse";
 import mammoth from "mammoth";
-import { formatText, TextFormatOptions } from "./textFormatter";
-import { Buffer } from "buffer";
+import {
+  analyzeTextFormat,
+  DEFAULT_FORMAT_OPTIONS,
+  detectLanguage,
+  formatText,
+  TextFormatMetadata,
+  TextFormatOptions,
+} from "lib/textFormatter";
 
-/**
- * Supported file types and their MIME types
- */
 export const ACCEPTED_FILE_TYPES = {
   "text/plain": [".txt"],
   "application/pdf": [".pdf"],
@@ -16,7 +18,6 @@ export const ACCEPTED_FILE_TYPES = {
 };
 
 export type SupportedFileType = "txt" | "doc" | "docx" | "pdf";
-
 export interface ParsedFileResult {
   content: string;
   formattedContent: string;
@@ -24,22 +25,15 @@ export interface ParsedFileResult {
     fileName: string;
     fileType: SupportedFileType;
     fileSize: number;
-    wordCount: number;
-    charCount: number;
-    lineCount: number;
-    lastModified: Date;
-    pageCount?: number;
+    lastModified: string;
     encoding: string;
-    language: "vi" | "en";
+    language: string;
+    pageCount?: number;
+    formatMetadata: TextFormatMetadata;
   };
-  raw?: any;
+  raw?: unknown;
 }
 
-// ... các hàm utility giữ nguyên ...
-
-/**
- * Parse text file content
- */
 export const parseTextFile = async (
   file: File,
   formatOptions?: Partial<TextFormatOptions>
@@ -48,9 +42,17 @@ export const parseTextFile = async (
     const buffer = await file.arrayBuffer();
     const decoder = new TextDecoder("utf-8");
     const content = decoder.decode(buffer);
-    const formattedContent = formatText(content, formatOptions);
-    const stats = calculateTextStats(formattedContent);
 
+    const language = detectLanguage(content);
+    const formattedContent = formatText(content, {
+      ...DEFAULT_FORMAT_OPTIONS,
+      ...formatOptions,
+      languageHint: language,
+    });
+
+    const formatMetadata = analyzeTextFormat(formattedContent);
+
+    const lastModified = new Date(file.lastModified).toISOString();
     return {
       content,
       formattedContent,
@@ -58,10 +60,10 @@ export const parseTextFile = async (
         fileName: file.name,
         fileType: "txt",
         fileSize: file.size,
-        lastModified: new Date(file.lastModified),
+        lastModified,
         encoding: "utf-8",
-        language: detectLanguage(content),
-        ...stats,
+        language,
+        formatMetadata,
       },
     };
   } catch (error) {
@@ -69,55 +71,169 @@ export const parseTextFile = async (
   }
 };
 
-/**
- * Parse PDF file content
- */
+// export const parsePDFFile = async (
+//   file: File,
+//   formatOptions?: Partial<TextFormatOptions>
+// ): Promise<ParsedFileResult> => {
+//   try {
+//     const arrayBuffer = await file.arrayBuffer();
+//     const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
+
+//     let fullText = "";
+//     for (let i = 1; i <= pdf.numPages; i++) {
+//       const page = await pdf.getPage(i);
+//       const textContent = await page.getTextContent();
+//       // eslint-disable-next-line @typescript-eslint/no-explicit-any
+//       const pageText = textContent.items.map((item: any) => item.str).join(" ");
+//       fullText += pageText + "\n";
+//     }
+
+//     const language = detectLanguage(fullText);
+//     const formattedContent = formatText(fullText, {
+//       ...DEFAULT_FORMAT_OPTIONS,
+//       ...formatOptions,
+//       languageHint: language,
+//     });
+
+//     const formatMetadata = analyzeTextFormat(formattedContent);
+
+//     return {
+//       content: fullText,
+//       formattedContent,
+//       metadata: {
+//         fileName: file.name,
+//         fileType: "pdf",
+//         fileSize: file.size,
+//         lastModified: new Date(file.lastModified).toDateString(),
+//         pageCount: pdf.numPages,
+//         encoding: "utf-8",
+//         language,
+//         formatMetadata,
+//       },
+//     };
+//   } catch (error) {
+//     throw new Error(`Error parsing PDF file: ${error}`);
+//   }
+// };
+
 export const parsePDFFile = async (
   file: File,
   formatOptions?: Partial<TextFormatOptions>
-): Promise<ParsedFileResult> => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<any> => {
   try {
-    const arrayBuffer = await file.arrayBuffer();
-    // Convert ArrayBuffer to Buffer
-    const buffer = Buffer.from(arrayBuffer);
-    const data = await pdfParse(buffer);
-    const content = data.text;
-    const formattedContent = formatText(content, formatOptions);
-    const stats = calculateTextStats(formattedContent);
-
     return {
-      content,
-      formattedContent,
+      content: "123",
       metadata: {
         fileName: file.name,
-        fileType: "pdf",
+        fileType: "pdf" as SupportedFileType,
         fileSize: file.size,
-        lastModified: new Date(file.lastModified),
-        pageCount: data.numpages,
+        lastModified: new Date(file.lastModified).toDateString(),
+        pageCount: 1,
         encoding: "utf-8",
-        language: detectLanguage(content),
-        ...stats,
+        language: "vi",
+        formatMetadata: {
+          paragraphCount: 123,
+          sentenceCount: 123,
+          averageWordsPerSentence: 123,
+          averageCharsPerWord: 123,
+          languageDetected: "vi",
+        },
       },
-      raw: data,
     };
   } catch (error) {
-    throw new Error(`Error parsing PDF file: ${error}`);
+    console.error("PDF parsing error:", error);
+    throw new Error(
+      `Error parsing PDF file: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
   }
 };
+// export const parsePDFFile = async (
+//   file: File,
+//   formatOptions?: Partial<TextFormatOptions>
+// ): Promise<ParsedFileResult> => {
+//   try {
+//     const arrayBuffer = await file.arrayBuffer();
+//     const pdfDoc = await PDFDocument.load(arrayBuffer);
+//     const pages = pdfDoc.getPages();
 
-/**
- * Parse DOCX file content
- */
+//     const worker = new Worker("/pdf.worker.js");
+
+//     let fullText = "";
+//     const extractPromises = pages.map((page, index) => {
+//       return new Promise((resolve) => {
+//         worker.postMessage({
+//           page: page,
+//           index: index,
+//         });
+
+//         worker.onmessage = (e) => {
+//           fullText += e.data.text + "\n";
+//           resolve(null);
+//         };
+//       });
+//     });
+
+//     await Promise.all(extractPromises);
+//     worker.terminate();
+
+//     const language = detectLanguage(fullText);
+//     const formattedContent = formatText(fullText, {
+//       ...DEFAULT_FORMAT_OPTIONS,
+//       ...formatOptions,
+//       languageHint: language,
+//     });
+
+//     const formatMetadata = analyzeTextFormat(formattedContent);
+
+//     return {
+//       content: fullText,
+//       formattedContent,
+//       metadata: {
+//         fileName: file.name,
+//         fileType: "pdf",
+//         fileSize: file.size,
+//         lastModified: new Date(file.lastModified).toDateString(),
+//         pageCount: pages.length,
+//         encoding: "utf-8",
+//         language,
+//         formatMetadata,
+//       },
+//     };
+//   } catch (error) {
+//     throw new Error(`Error parsing PDF file: ${error}`);
+//   }
+// };
+
 export const parseDocxFile = async (
   file: File,
   formatOptions?: Partial<TextFormatOptions>
 ): Promise<ParsedFileResult> => {
   try {
     const arrayBuffer = await file.arrayBuffer();
-    const result = await mammoth.extractRawText({ arrayBuffer });
-    const content = result.value;
-    const formattedContent = formatText(content, formatOptions);
-    const stats = calculateTextStats(formattedContent);
+
+    // Sử dụng mammoth để extract text
+    const result = await mammoth.extractRawText({
+      arrayBuffer: arrayBuffer,
+    });
+
+    const content = result.value || "";
+    const warnings = result.messages;
+
+    if (warnings.length > 0) {
+      console.warn("Docx parsing warnings:", warnings);
+    }
+
+    const language = detectLanguage(content);
+    const formattedContent = formatText(content, {
+      ...DEFAULT_FORMAT_OPTIONS,
+      ...formatOptions,
+      languageHint: language,
+    });
+
+    const formatMetadata = analyzeTextFormat(formattedContent);
 
     return {
       content,
@@ -126,54 +242,17 @@ export const parseDocxFile = async (
         fileName: file.name,
         fileType: "docx",
         fileSize: file.size,
-        lastModified: new Date(file.lastModified),
+        lastModified: new Date(file.lastModified).toDateString(),
         encoding: "utf-8",
-        language: detectLanguage(content),
-        ...stats,
+        language,
+        formatMetadata,
       },
-      raw: result,
     };
   } catch (error) {
     throw new Error(`Error parsing DOCX file: ${error}`);
   }
 };
 
-/**
- * Parse DOC file content
- */
-export const parseDocFile = async (
-  file: File,
-  formatOptions?: Partial<TextFormatOptions>
-): Promise<ParsedFileResult> => {
-  try {
-    const arrayBuffer = await file.arrayBuffer();
-    const result = await mammoth.extractRawText({ arrayBuffer });
-    const content = result.value;
-    const formattedContent = formatText(content, formatOptions);
-    const stats = calculateTextStats(formattedContent);
-
-    return {
-      content,
-      formattedContent,
-      metadata: {
-        fileName: file.name,
-        fileType: "doc",
-        fileSize: file.size,
-        lastModified: new Date(file.lastModified),
-        encoding: "utf-8",
-        language: detectLanguage(content),
-        ...stats,
-      },
-      raw: result,
-    };
-  } catch (error) {
-    throw new Error(`Error parsing DOC file: ${error}`);
-  }
-};
-
-/**
- * Main function to parse any supported file
- */
 export const parseFile = async (
   file: File,
   formatOptions?: Partial<TextFormatOptions>
@@ -182,11 +261,7 @@ export const parseFile = async (
     throw new Error("No file provided");
   }
 
-  if (!isSupportedFileType(file.name)) {
-    throw new Error("Unsupported file type");
-  }
-
-  const fileType = getFileExtension(file.name);
+  const fileType = file.name.split(".").pop()?.toLowerCase();
 
   switch (fileType) {
     case "txt":
@@ -194,10 +269,188 @@ export const parseFile = async (
     case "pdf":
       return parsePDFFile(file, formatOptions);
     case "docx":
-      return parseDocxFile(file, formatOptions);
     case "doc":
-      return parseDocFile(file, formatOptions);
+      return aiParseFile(file, formatOptions);
     default:
       throw new Error("Unsupported file type");
+  }
+};
+export const testAI = async (input: string) => {
+  try {
+    const response = await fetch("/api/aim-llm", {
+      method: "POST",
+      body: JSON.stringify({ body: input }),
+    });
+
+    const data = await response.json();
+
+    console.log("🚀 ~ data:", data);
+  } catch (error) {
+    console.log("🚀 ~ testAI ~ error:", error);
+  }
+};
+
+export const aiParseFile = async (
+  file: File,
+  formatOptions?: Partial<TextFormatOptions>
+): Promise<ParsedFileResult> => {
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch("/api/aim-llm", {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    const { content } = data;
+    console.log("🚀 ~ content:", content);
+
+    if (!response.ok) {
+      throw new Error(
+        data.details || data.error || "Failed to parse DOCX file"
+      );
+    }
+
+    if (!content) {
+      throw new Error("No content extracted from file");
+    }
+
+    const language = detectLanguage(content);
+    const formattedContent = formatText(content, {
+      ...DEFAULT_FORMAT_OPTIONS,
+      ...formatOptions,
+      languageHint: language,
+    });
+
+    const formatMetadata = analyzeTextFormat(formattedContent);
+
+    return {
+      content,
+      formattedContent,
+      metadata: {
+        fileName: file.name,
+        fileType: "docx",
+        fileSize: file.size,
+        lastModified: new Date(file.lastModified).toDateString(),
+        encoding: "utf-8",
+        language,
+        formatMetadata,
+      },
+    };
+  } catch (error) {
+    console.error("Detailed error:", error);
+    throw new Error(
+      "Không thể đọc file này. Vui lòng thử lại hoặc sử dụng file khác."
+    );
+  }
+};
+
+//NOTE: This is a second solution to use docx preview lib
+// export const parseDocxFile2 = async (
+//   file: File,
+//   formatOptions?: Partial<TextFormatOptions>
+// ): Promise<ParsedFileResult> => {
+//   try {
+//     const arrayBuffer = await file.arrayBuffer();
+
+//     // Create a temporary container for rendering
+//     const container = document.createElement("div");
+//     document.body.appendChild(container);
+
+//     // Render DOCX to HTML
+//     await renderAsync(arrayBuffer, container);
+
+//     // Extract text content
+//     const content = container.innerText;
+
+//     // Clean up
+//     document.body.removeChild(container);
+
+//     // Process the content
+//     const language = detectLanguage(content);
+//     const formattedContent = formatText(content, {
+//       ...DEFAULT_FORMAT_OPTIONS,
+//       ...formatOptions,
+//       languageHint: language,
+//     });
+
+//     const formatMetadata = analyzeTextFormat(formattedContent);
+
+//     return {
+//       content,
+//       formattedContent,
+//       metadata: {
+//         fileName: file.name,
+//         fileType: "docx",
+//         fileSize: file.size,
+//         lastModified: new Date(file.lastModified).toDateString(),
+//         encoding: "utf-8",
+//         language,
+//         formatMetadata,
+//       },
+//     };
+//   } catch (error) {
+//     throw new Error(`Error parsing DOCX file: ${error}`);
+//   }
+// };
+
+// NOTE: This is a third solution to use docx and formidable lib
+export const parseDocxFile3 = async (
+  file: File,
+  formatOptions?: Partial<TextFormatOptions>
+): Promise<ParsedFileResult> => {
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch("/api/parse-docx", {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.details || data.error || "Failed to parse DOCX file"
+      );
+    }
+
+    const { content } = data;
+
+    if (!content) {
+      throw new Error("No content extracted from file");
+    }
+
+    const language = detectLanguage(content);
+    const formattedContent = formatText(content, {
+      ...DEFAULT_FORMAT_OPTIONS,
+      ...formatOptions,
+      languageHint: language,
+    });
+
+    const formatMetadata = analyzeTextFormat(formattedContent);
+
+    return {
+      content,
+      formattedContent,
+      metadata: {
+        fileName: file.name,
+        fileType: "docx",
+        fileSize: file.size,
+        lastModified: new Date(file.lastModified).toDateString(),
+        encoding: "utf-8",
+        language,
+        formatMetadata,
+      },
+    };
+  } catch (error) {
+    console.error("Detailed error:", error);
+    throw new Error(
+      "Không thể đọc file này. Vui lòng thử lại hoặc sử dụng file khác."
+    );
   }
 };
