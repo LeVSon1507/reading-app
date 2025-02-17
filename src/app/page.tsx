@@ -40,6 +40,7 @@ export default function HomePage() {
     alignment: "left",
     fontFamily: "inter",
     backgroundColor: "#d2b48c",
+    textColor: "#000000",
   });
 
   const [formatRules, setFormatRules] = useState<FormatRules>({
@@ -154,6 +155,10 @@ export default function HomePage() {
               setBackgroundColor={(color) =>
                 handleFormatOptionsChange("backgroundColor", color)
               }
+              setTextColor={(color) =>
+                handleFormatOptionsChange("textColor", color)
+              }
+              textColor={formatOptions.textColor}
               formatRules={formatRules}
               onFormatRulesChange={handleFormatRulesChange}
               onFormatText={handleFormatText}
@@ -209,6 +214,7 @@ export default function HomePage() {
             </div>
           ) : (
             <FileViewer
+              textColor={formatOptions.textColor}
               file={selectedFile}
               formatOptions={formatOptions}
               content={formattedContent}

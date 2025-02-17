@@ -14,6 +14,7 @@ import {
   Sun,
   Moon,
   BookOpen,
+  Type,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -34,12 +35,19 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { predefinedTextColors } from "@/components/reader/constants";
 
 interface FileViewerProps {
   file: File | null;
   formatOptions?: Partial<TextFormatOptions>;
   content?: string;
   maxHeight?: string;
+  textColor: string;
 }
 
 const FileViewer: React.FC<FileViewerProps> = ({
@@ -47,6 +55,7 @@ const FileViewer: React.FC<FileViewerProps> = ({
   formatOptions: initialFormatOptions,
   content: externalContent,
   maxHeight = "70vh",
+  textColor: textColorProps,
 }) => {
   const [content, setContent] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
@@ -59,6 +68,7 @@ const FileViewer: React.FC<FileViewerProps> = ({
       fontFamily: "inter",
       backgroundColor: "#d2b48c",
       alignment: "left",
+      textColor: textColorProps || "#000000",
     }
   );
 
@@ -106,6 +116,7 @@ const FileViewer: React.FC<FileViewerProps> = ({
     boxSizing: "border-box" as const,
     lineHeight: "1.8",
     padding: "16px 20px",
+    color: !isFullscreen ? textColorProps : formatOptions.textColor,
   };
 
   const scrollContainerStyle = {
@@ -120,136 +131,221 @@ const FileViewer: React.FC<FileViewerProps> = ({
     setIsFullscreen(!isFullscreen);
   };
 
-  const ReaderControls = () => (
-    <div className="sticky top-0 z-10 backdrop-blur-lg bg-background/90 border-b">
-      <div className="flex flex-wrap items-center justify-between p-2 gap-2">
-        <div className="flex items-center gap-2 flex-wrap">
-          <Select
-            value={formatOptions.fontFamily}
-            onValueChange={(value) =>
-              setFormatOptions({ ...formatOptions, fontFamily: value })
-            }
-          >
-            <SelectTrigger className="w-20 h-8 text-sm">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="inter">Inter</SelectItem>
-              <SelectItem value="arial">Arial</SelectItem>
-              <SelectItem value="times">Times</SelectItem>
-            </SelectContent>
-          </Select>
+  const ReaderControls = () => {
+    if (!isFullscreen) return <></>;
+    return (
+      <div className="sticky top-0 z-10 backdrop-blur-lg bg-background/90 border-b">
+        <div className="flex flex-wrap items-center justify-between p-2 gap-2">
+          {/* Font Controls */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <Select
+              value={formatOptions.fontFamily}
+              onValueChange={(value) =>
+                setFormatOptions({ ...formatOptions, fontFamily: value })
+              }
+            >
+              <SelectTrigger className="w-20 h-8 text-sm text-foreground">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="inter">Inter</SelectItem>
+                <SelectItem value="arial">Arial</SelectItem>
+                <SelectItem value="times">Times</SelectItem>
+              </SelectContent>
+            </Select>
 
+            {/* Text Color */}
+            <div className="flex items-center gap-2">
+              <Popover>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="relative"
+                        >
+                          <Type className="w-4 h-4" />
+                          <div
+                            className="absolute bottom-0 right-0 w-2 h-2 rounded-full border border-muted"
+                            style={{ backgroundColor: formatOptions.textColor }}
+                          />
+                        </Button>
+                      </PopoverTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent>Change text color</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <PopoverContent className="w-64">
+                  <div className="grid grid-cols-4 gap-2">
+                    {predefinedTextColors.map((color) => (
+                      <TooltipProvider key={color.value}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="w-12 h-12 rounded-md relative"
+                              style={{ backgroundColor: color.value }}
+                              onClick={() => {
+                                setFormatOptions({
+                                  ...formatOptions,
+                                  textColor: color.value,
+                                });
+                              }}
+                            >
+                              {formatOptions.textColor === color.value && (
+                                <div className="absolute inset-0 border-2 border-primary rounded-md" />
+                              )}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>{color.name}</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 text-foreground hover:text-foreground"
+                onClick={() =>
+                  setFormatOptions({
+                    ...formatOptions,
+                    fontSize: Math.max(12, formatOptions.fontSize - 2),
+                  })
+                }
+              >
+                <Minus className="h-4 w-4" />
+              </Button>
+              <span className="text-sm min-w-[2rem] text-center font-medium text-foreground">
+                {formatOptions.fontSize}
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 text-foreground hover:text-foreground"
+                onClick={() =>
+                  setFormatOptions({
+                    ...formatOptions,
+                    fontSize: Math.min(32, formatOptions.fontSize + 2),
+                  })
+                }
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Alignment Controls */}
           <div className="flex items-center gap-1">
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8"
+              className={cn(
+                "h-8 w-8 text-foreground hover:text-foreground",
+                formatOptions.alignment === "left" &&
+                  "bg-accent text-accent-foreground"
+              )}
               onClick={() =>
-                setFormatOptions({
-                  ...formatOptions,
-                  fontSize: Math.max(12, formatOptions.fontSize - 2),
-                })
+                setFormatOptions({ ...formatOptions, alignment: "left" })
               }
             >
-              <Minus className="h-4 w-4" />
+              <AlignLeft className="h-4 w-4" />
             </Button>
-            <span className="text-sm min-w-[2rem] text-center">
-              {formatOptions.fontSize}
-            </span>
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8"
+              className={cn(
+                "h-8 w-8 text-foreground hover:text-foreground",
+                formatOptions.alignment === "center" &&
+                  "bg-accent text-accent-foreground"
+              )}
+              onClick={() =>
+                setFormatOptions({ ...formatOptions, alignment: "center" })
+              }
+            >
+              <AlignCenter className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn(
+                "h-8 w-8 text-foreground hover:text-foreground",
+                formatOptions.alignment === "right" &&
+                  "bg-accent text-accent-foreground"
+              )}
+              onClick={() =>
+                setFormatOptions({ ...formatOptions, alignment: "right" })
+              }
+            >
+              <AlignRight className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Theme Controls */}
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn(
+                "h-8 w-8 text-foreground hover:text-foreground",
+                formatOptions.backgroundColor === "#ffffff" &&
+                  "bg-accent text-accent-foreground"
+              )}
               onClick={() =>
                 setFormatOptions({
                   ...formatOptions,
-                  fontSize: Math.min(32, formatOptions.fontSize + 2),
+                  backgroundColor: "#ffffff",
                 })
               }
             >
-              <Plus className="h-4 w-4" />
+              <Sun className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn(
+                "h-8 w-8 text-foreground hover:text-foreground",
+                formatOptions.backgroundColor === "#d2b48c" &&
+                  "bg-accent text-accent-foreground"
+              )}
+              onClick={() =>
+                setFormatOptions({
+                  ...formatOptions,
+                  backgroundColor: "#d2b48c",
+                })
+              }
+            >
+              <BookOpen className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn(
+                "h-8 w-8 text-foreground hover:text-foreground",
+                formatOptions.backgroundColor === "#1a1a1a" &&
+                  "bg-accent text-accent-foreground"
+              )}
+              onClick={() =>
+                setFormatOptions({
+                  ...formatOptions,
+                  backgroundColor: "#1a1a1a",
+                })
+              }
+            >
+              <Moon className="h-4 w-4" />
             </Button>
           </div>
         </div>
-
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            className={cn(
-              "h-8 w-8",
-              formatOptions.alignment === "left" && "bg-accent"
-            )}
-            onClick={() =>
-              setFormatOptions({ ...formatOptions, alignment: "left" })
-            }
-          >
-            <AlignLeft className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className={cn(
-              "h-8 w-8",
-              formatOptions.alignment === "center" && "bg-accent"
-            )}
-            onClick={() =>
-              setFormatOptions({ ...formatOptions, alignment: "center" })
-            }
-          >
-            <AlignCenter className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className={cn(
-              "h-8 w-8",
-              formatOptions.alignment === "right" && "bg-accent"
-            )}
-            onClick={() =>
-              setFormatOptions({ ...formatOptions, alignment: "right" })
-            }
-          >
-            <AlignRight className="h-4 w-4" />
-          </Button>
-        </div>
-
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8"
-            onClick={() =>
-              setFormatOptions({ ...formatOptions, backgroundColor: "#ffffff" })
-            }
-          >
-            <Sun className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8"
-            onClick={() =>
-              setFormatOptions({ ...formatOptions, backgroundColor: "#d2b48c" })
-            }
-          >
-            <BookOpen className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8"
-            onClick={() =>
-              setFormatOptions({ ...formatOptions, backgroundColor: "#1a1a1a" })
-            }
-          >
-            <Moon className="h-4 w-4" />
-          </Button>
-        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const ViewerContent = () => (
     <div style={scrollContainerStyle} className="w-full">

@@ -27,6 +27,8 @@ export interface TextFormatOptions {
 
   // Language Settings
   languageHint: string; // Preferred language for formatting ('auto' or ISO code)
+
+  textColor?: string;
 }
 
 export const DEFAULT_FORMAT_OPTIONS: TextFormatOptions = {
