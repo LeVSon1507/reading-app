@@ -8,7 +8,12 @@ import {
   Minimize2,
   Minus,
   Plus,
-  Type,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  Sun,
+  Moon,
+  BookOpen,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -20,9 +25,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
+import { cn } from "@/lib/utils";
 import { parseFile } from "lib/fileParser";
 import { TextFormatOptions } from "@/components/reader/type";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface FileViewerProps {
   file: File | null;
@@ -72,9 +83,7 @@ const FileViewer: React.FC<FileViewerProps> = ({
       } catch (err) {
         console.error("Error reading file:", err);
         setError(
-          err instanceof Error
-            ? err.message
-            : "An error occurred while reading the file"
+          err instanceof Error ? err.message : "Có lỗi xảy ra khi đọc file"
         );
       } finally {
         setLoading(false);
@@ -87,16 +96,16 @@ const FileViewer: React.FC<FileViewerProps> = ({
   const contentStyle = {
     fontSize: `${formatOptions.fontSize}px`,
     fontFamily: formatOptions.fontFamily,
-    textAlign: formatOptions.alignment,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    textAlign: formatOptions.alignment as any,
     backgroundColor: formatOptions.backgroundColor,
     whiteSpace: "pre-wrap" as const,
     wordBreak: "break-word" as const,
-    padding: "1rem",
-    borderRadius: "0.5rem",
-    // minWidth: "100%",
     width: "100%",
     maxWidth: "100%",
     boxSizing: "border-box" as const,
+    lineHeight: "1.8",
+    padding: "16px 20px",
   };
 
   const scrollContainerStyle = {
@@ -104,77 +113,190 @@ const FileViewer: React.FC<FileViewerProps> = ({
     overflowX: "hidden" as const,
     maxHeight: isFullscreen ? "calc(100vh - 8rem)" : maxHeight,
     width: "100%",
-  };
+    WebkitOverflowScrolling: "touch",
+  } as const;
 
   const toggleFullscreen = () => {
     setIsFullscreen(!isFullscreen);
   };
 
-  const Controls = () => (
-    <div className="flex items-center gap-2 p-2 bg-background/95 backdrop-blur border-b">
-      <Select
-        value={formatOptions.fontFamily}
-        onValueChange={(value) =>
-          setFormatOptions({ ...formatOptions, fontFamily: value })
-        }
-      >
-        <SelectTrigger className="w-24 h-8">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="inter">Inter</SelectItem>
-          <SelectItem value="arial">Arial</SelectItem>
-          <SelectItem value="times">Times</SelectItem>
-        </SelectContent>
-      </Select>
+  const ReaderControls = () => (
+    <div className="sticky top-0 z-10 backdrop-blur-lg bg-background/90 border-b">
+      <div className="flex flex-wrap items-center justify-between p-2 gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Select
+            value={formatOptions.fontFamily}
+            onValueChange={(value) =>
+              setFormatOptions({ ...formatOptions, fontFamily: value })
+            }
+          >
+            <SelectTrigger className="w-20 h-8 text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="inter">Inter</SelectItem>
+              <SelectItem value="arial">Arial</SelectItem>
+              <SelectItem value="times">Times</SelectItem>
+            </SelectContent>
+          </Select>
 
-      <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          onClick={() =>
-            setFormatOptions({
-              ...formatOptions,
-              fontSize: Math.max(8, formatOptions.fontSize - 2),
-            })
-          }
-        >
-          <Minus className="h-5 w-5" />
-        </Button>
-        <span className="text-sm w-8 text-center">
-          {formatOptions.fontSize}
-        </span>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          onClick={() =>
-            setFormatOptions({
-              ...formatOptions,
-              fontSize: Math.min(32, formatOptions.fontSize + 2),
-            })
-          }
-        >
-          <Plus className="h-5 w-5" />
-        </Button>
-      </div>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8"
+              onClick={() =>
+                setFormatOptions({
+                  ...formatOptions,
+                  fontSize: Math.max(12, formatOptions.fontSize - 2),
+                })
+              }
+            >
+              <Minus className="h-4 w-4" />
+            </Button>
+            <span className="text-sm min-w-[2rem] text-center">
+              {formatOptions.fontSize}
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8"
+              onClick={() =>
+                setFormatOptions({
+                  ...formatOptions,
+                  fontSize: Math.min(32, formatOptions.fontSize + 2),
+                })
+              }
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
 
-      <div className="flex items-center gap-2">
-        <Type className="h-4 w-4" />
-        <Slider
-          className="w-24"
-          value={[formatOptions.fontSize]}
-          min={8}
-          max={32}
-          step={1}
-          onValueChange={([value]) =>
-            setFormatOptions({ ...formatOptions, fontSize: value })
-          }
-        />
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            className={cn(
+              "h-8 w-8",
+              formatOptions.alignment === "left" && "bg-accent"
+            )}
+            onClick={() =>
+              setFormatOptions({ ...formatOptions, alignment: "left" })
+            }
+          >
+            <AlignLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className={cn(
+              "h-8 w-8",
+              formatOptions.alignment === "center" && "bg-accent"
+            )}
+            onClick={() =>
+              setFormatOptions({ ...formatOptions, alignment: "center" })
+            }
+          >
+            <AlignCenter className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className={cn(
+              "h-8 w-8",
+              formatOptions.alignment === "right" && "bg-accent"
+            )}
+            onClick={() =>
+              setFormatOptions({ ...formatOptions, alignment: "right" })
+            }
+          >
+            <AlignRight className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8"
+            onClick={() =>
+              setFormatOptions({ ...formatOptions, backgroundColor: "#ffffff" })
+            }
+          >
+            <Sun className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8"
+            onClick={() =>
+              setFormatOptions({ ...formatOptions, backgroundColor: "#d2b48c" })
+            }
+          >
+            <BookOpen className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8"
+            onClick={() =>
+              setFormatOptions({ ...formatOptions, backgroundColor: "#1a1a1a" })
+            }
+          >
+            <Moon className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
     </div>
   );
+
+  const ViewerContent = () => (
+    <div style={scrollContainerStyle} className="w-full">
+      {loading ? (
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="w-6 h-6 animate-spin" />
+          <span className="ml-2">Đang tải...</span>
+        </div>
+      ) : error ? (
+        <Alert variant="destructive" className="m-4">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      ) : (
+        <article
+          className="prose prose-sm max-w-none dark:prose-invert mx-auto px-4 sm:px-6"
+          style={contentStyle}
+        >
+          {content}
+        </article>
+      )}
+    </div>
+  );
+
+  const TruncatedFileName = ({ name }: { name: string }) => {
+    const words = name.split(" ");
+    let displayName = name;
+
+    if (words.length > 1) {
+      displayName = `${words[0]}...`;
+    }
+
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger>
+            <h2 className="text-xl font-semibold flex items-center gap-2">
+              <FileText className="w-5 h-5" />
+              <span className="truncate max-w-[300px]">{displayName}</span>
+            </h2>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{name}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  };
 
   if (!file) {
     return (
@@ -182,61 +304,29 @@ const FileViewer: React.FC<FileViewerProps> = ({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="w-5 h-5" />
-            File Preview
+            Xem trước file
           </CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground text-center py-8">
-            No file selected
+            Chưa chọn file
           </p>
         </CardContent>
       </Card>
     );
   }
 
-  const ViewerContent = () => (
-    <div style={scrollContainerStyle} className="scrollbar-custom w-full">
-      {loading ? (
-        <div className="flex items-center justify-center py-8 w-full">
-          <Loader2 className="w-6 h-6 animate-spin" />
-          <span className="ml-2">Loading file content...</span>
-        </div>
-      ) : error ? (
-        <Alert variant="destructive" className="w-full">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      ) : (
-        <pre className="w-full min-w-full" style={contentStyle}>
-          {content}
-        </pre>
-      )}
-    </div>
-  );
-
   if (isFullscreen) {
     return (
       <div className="fixed inset-0 z-50 bg-background flex flex-col">
-        <div className="sticky top-0 z-10">
-          <div className="p-4 border-b flex items-center justify-between bg-background">
-            <h2 className="text-xl font-semibold flex items-center gap-2">
-              <FileText className="w-5 h-5" />
-              {file.name}
-            </h2>
-
-            <div className="flex items-center align-middle">
-              <Controls />
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleFullscreen}
-                className="ml-auto"
-              >
-                <Minimize2 className="h-5 w-5" />
-              </Button>
-            </div>
-          </div>
+        <div className="flex items-center justify-between p-4 border-b bg-background">
+          <TruncatedFileName name={file.name} />
+          <Button variant="ghost" size="icon" onClick={toggleFullscreen}>
+            <Minimize2 className="h-5 w-5" />
+          </Button>
         </div>
-        <div className="flex-1 p-4 overflow-hidden w-full">
+        <ReaderControls />
+        <div className="flex-1 overflow-hidden">
           <ViewerContent />
         </div>
       </div>
@@ -247,10 +337,7 @@ const FileViewer: React.FC<FileViewerProps> = ({
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <FileText className="w-5 h-5" />
-            {file.name}
-          </div>
+          <TruncatedFileName name={file.name} />
           <Button
             variant="ghost"
             size="icon"
@@ -261,8 +348,11 @@ const FileViewer: React.FC<FileViewerProps> = ({
           </Button>
         </CardTitle>
       </CardHeader>
-      <CardContent className="w-full">
-        <ViewerContent />
+      <CardContent className="p-0">
+        <ReaderControls />
+        <div className="p-4">
+          <ViewerContent />
+        </div>
       </CardContent>
     </Card>
   );
