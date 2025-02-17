@@ -1,9 +1,10 @@
 "use client";
 
 import React from "react";
-import { FileText, Github } from "lucide-react";
+import { Github } from "lucide-react";
 import { Button } from "components/ui/button";
 import Link from "next/link";
+import Image from "next/image";
 
 const Header = () => {
   return (
@@ -12,8 +13,14 @@ const Header = () => {
         <div className="flex items-center justify-between h-full">
           {/* Logo and App Name */}
           <div className="flex items-center space-x-2">
-            <FileText className="h-6 w-6 text-primary" />
-            <h1 className="text-xl font-bold">Text Reader</h1>
+            <Image
+              src="/reading_icon_1.svg"
+              alt="Reading Icon"
+              width={70}
+              height={70}
+              className="text-primary"
+            />
+            <h1 className="text-2xl font-bold text-[#d2b48c]">Reading App</h1>
           </div>
 
           {/* Right side links */}

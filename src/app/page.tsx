@@ -7,6 +7,7 @@ import { TextFormatOptions } from "@/components/reader/type";
 import { FormatRules, formatText } from "@/lib/helpers";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 
 const FileUpload = dynamic(() => import("@/components/reader/FileUpload"), {
   ssr: false,
@@ -115,7 +116,16 @@ export default function HomePage() {
           "border-2 border-blue-500": enableAutoFormat,
         })}
       >
-        <h1 className="text-2xl font-bold mb-4">Document Reader</h1>
+        <h1 className="text-2xl font-bold mb-4 flex items-center">
+          <Image
+            src="/cloud-file.svg"
+            alt="Reading Icon"
+            width={55}
+            height={55}
+            className="text-primary"
+          />
+          <p className="ml-2 text-[#d2b48c] text-xl">File Reader</p>
+        </h1>
 
         <FileUpload
           onFileSelect={handleFileSelect}
@@ -158,10 +168,26 @@ export default function HomePage() {
               {isFormatting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {/* <Image
+                    src="/loading.svg"
+                    alt="Loading Icon"
+                    width={150}
+                    height={150}
+                    className=""
+                  /> */}
                   Formatting...
                 </>
               ) : (
-                "Format Text"
+                <div className="flex align-middle items-center cursor-pointer">
+                  <p className="mr-2">Format Text</p>
+                  <Image
+                    src="/11.svg"
+                    alt="Format Icon"
+                    width={150}
+                    height={150}
+                    className="text-primary"
+                  />
+                </div>
               )}
             </Button>
           </div>
@@ -172,7 +198,13 @@ export default function HomePage() {
         <section className="bg-white rounded-lg shadow-md p-6">
           {isFormatting ? (
             <div className="flex items-center justify-center p-4">
-              <Loader2 className="h-8 w-8 animate-spin" />
+              {/* <Loader2 className="h-8 w-8 animate-spin" /> */}
+              <Image
+                src="/loading.svg"
+                alt="Loading Icon"
+                width={150}
+                height={150}
+              />
               <span className="ml-2">Formatting...</span>
             </div>
           ) : (

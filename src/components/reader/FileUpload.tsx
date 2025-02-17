@@ -1,9 +1,9 @@
 import React, { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-import { Upload } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "lib/utils";
+import Image from "next/image";
 
 interface FileUploadProps {
   onFileSelect: (file: File) => void;
@@ -50,14 +50,23 @@ const FileUpload: React.FC<FileUploadProps> = ({
           )}
         >
           <input {...getInputProps()} />
-          <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+          {/* <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" /> */}
+          <Image
+            src="/9.svg"
+            alt="Reading Icon"
+            width={300}
+            height={300}
+            className="mx-auto mb-4 text-muted-foreground"
+          />
           {isDragActive ? (
             <p className="text-lg">Drop your file here...</p>
           ) : (
             <div className="space-y-2">
               <p className="text-lg">Drop your file here or</p>
               <Button variant="secondary" size="sm">
-                Browse Files
+                <div className="flex justify-center items-center align-middle">
+                  <p className="mr-2">Browse Files</p>
+                </div>
               </Button>
               <p className="text-sm text-muted-foreground">
                 Supported formats: {acceptedFileTypes.join(", ")}

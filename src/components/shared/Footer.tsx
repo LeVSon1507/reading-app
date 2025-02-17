@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Heart, Instagram, Linkedin, Mail, MapPin } from "lucide-react";
+import { Heart, Instagram, Linkedin, Mail, MapPin, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -38,7 +38,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Left section - Copyright and Author */}
           <div className="space-y-4">
-            <h3 className="font-semibold text-lg">Text Reader</h3>
+            <h3 className="font-semibold text-lg">Reading App</h3>
             <div
               className="text-sm text-muted-foreground"
               suppressHydrationWarning
@@ -65,6 +65,10 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="font-semibold text-lg">Contact</h3>
             <div className="space-y-2">
+              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                <Phone className="h-4 w-4" />
+                <a href="tel:sonlvs1507@gmail.com">0982055105</a>
+              </div>
               <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                 <MapPin className="h-4 w-4" />
                 <span>Vietnam</span>
