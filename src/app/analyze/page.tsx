@@ -16,7 +16,6 @@ export default function AnalyzePage() {
       try {
         const parsedFileData = JSON.parse(fileData);
 
-        // Chuyển đổi fileData thành File object nếu cần
         const file = new File([parsedFileData.content], parsedFileData.name, {
           type: parsedFileData.type,
         });

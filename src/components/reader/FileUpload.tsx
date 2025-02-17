@@ -12,7 +12,8 @@ interface FileUploadProps {
 
 const FileUpload: React.FC<FileUploadProps> = ({
   onFileSelect,
-  acceptedFileTypes = [".txt", ".pdf", ".doc", ".docx"],
+  // acceptedFileTypes = [".txt", ".pdf", ".doc", ".docx"],
+  acceptedFileTypes = [".txt"],
 }) => {
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {

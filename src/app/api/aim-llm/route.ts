@@ -8,19 +8,31 @@ const api = new OpenAI({
 
 export async function POST(request: NextRequest) {
   try {
-    const formData = await request.formData();
-    const file = formData.get("file") as File;
-
-    if (!file) {
-      throw new Error("No file provided");
-    }
-
-    const buffer = await file.arrayBuffer();
-    const decoder = new TextDecoder("utf-8");
-    const content = decoder.decode(buffer);
+    const body = await request.json();
 
     const systemPrompt =
       "You are a document analysis AI. Analyze the content, extract key points, and provide a summary.";
+    console.log("Request payload:", {
+      model: "mistralai/Mistral-7B-Instruct-v0.2",
+      messages: [
+        { role: "system", content: systemPrompt },
+        {
+          role: "user",
+          content: `content file: ${body.content} and filename: ${body.fileName}`,
+        },
+      ],
+      temperature: 0.7,
+      max_tokens: 500,
+    });
+    if (!body.fileName || !body.content) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Missing fileName or content in request body.",
+        },
+        { status: 400 }
+      );
+    }
 
     const completion = await api.chat.completions.create({
       model: "mistralai/Mistral-7B-Instruct-v0.2",
@@ -31,7 +43,7 @@ export async function POST(request: NextRequest) {
         },
         {
           role: "user",
-          content: content,
+          content: `content file: ${body.content} and filename: ${body.fileName}`,
         },
       ],
       temperature: 0.7,
@@ -42,7 +54,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      content,
       analysis: response,
     });
   } catch (error) {
@@ -56,7 +67,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.error("API error:", error);
     return NextResponse.json(
       {
         success: false,

@@ -29,8 +29,19 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { FormatRules } from "@/lib/helpers";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 
-interface ControlsProps {
+export interface ControlsProps {
+  removeExtraSpaces?: boolean;
+  normalizeNewlines?: boolean;
+  smartQuotes?: boolean;
+  normalizeUnicode?: boolean;
+  preserveIndentation?: boolean;
+  languageHint?: string;
+  preserveParagraphs?: boolean;
+  lineWidth?: number;
   fontSize: number;
   setFontSize: (size: number) => void;
   alignment: "left" | "center" | "right";
@@ -39,6 +50,12 @@ interface ControlsProps {
   setFontFamily: (font: string) => void;
   backgroundColor: string;
   setBackgroundColor: (color: string) => void;
+
+  //format txt props
+  formatRules?: FormatRules;
+  onFormatRulesChange: (rules: Partial<FormatRules>) => void;
+  onFormatText?: () => void;
+  isFormatting?: boolean;
 }
 
 const predefinedColors = [
@@ -50,12 +67,10 @@ const predefinedColors = [
   { name: "Lavender", value: "#faf5ff" },
   { name: "Sepia", value: "#fdf2e9" },
   { name: "Night", value: "#1a1a1a" },
-  // Add more Son'favorite predefined colors
   { name: "Soft Beige", value: "#f5f5dc" },
   { name: "Light Sepia", value: "#f4ecd8" },
   { name: "Warm Gray", value: "#e5e5e5" },
   { name: "Pale Yellow", value: "#fffff0" },
-  { name: "Cream", value: "#fdf6e3" },
   { name: "Light Brown", value: "#d2b48c" },
   { name: "Off White", value: "#faf0e6" },
 ];
@@ -69,6 +84,10 @@ const Controls: React.FC<ControlsProps> = ({
   setFontFamily,
   backgroundColor,
   setBackgroundColor,
+  formatRules,
+  onFormatRulesChange,
+  // onFormatText,
+  // isFormatting = false,
 }) => {
   return (
     <Card className="w-full">
@@ -89,7 +108,6 @@ const Controls: React.FC<ControlsProps> = ({
             </SelectContent>
           </Select>
         </div>
-
         {/* Font Size Controls */}
         <div className="flex items-center gap-2">
           <TooltipProvider>
@@ -133,7 +151,6 @@ const Controls: React.FC<ControlsProps> = ({
             </Tooltip>
           </TooltipProvider>
         </div>
-
         {/* Text Alignment Controls */}
         <div className="flex items-center gap-1">
           <TooltipProvider>
@@ -181,7 +198,6 @@ const Controls: React.FC<ControlsProps> = ({
             </Tooltip>
           </TooltipProvider>
         </div>
-
         {/* Background Color Picker */}
         <div className="flex items-center gap-2">
           <Popover>
@@ -210,9 +226,11 @@ const Controls: React.FC<ControlsProps> = ({
                         <Button
                           variant="outline"
                           size="icon"
-                          className="w-12 h-12 rounded-md"
+                          className="w-12 h-12 rounded-md relative"
                           style={{ backgroundColor: color.value }}
-                          onClick={() => setBackgroundColor(color.value)}
+                          onClick={() => {
+                            setBackgroundColor(color.value);
+                          }}
                         >
                           {backgroundColor === color.value && (
                             <div className="absolute inset-0 border-2 border-primary rounded-md" />
@@ -227,6 +245,83 @@ const Controls: React.FC<ControlsProps> = ({
             </PopoverContent>
           </Popover>
         </div>
+        {/* Format Options */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={formatRules.removeExtraSpaces}
+              onCheckedChange={(checked) =>
+                onFormatRulesChange({ removeExtraSpaces: checked })
+              }
+            />
+            <Label>Remove Extra Spaces</Label>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={formatRules.removeEmptyLines}
+              onCheckedChange={(checked) =>
+                onFormatRulesChange({ removeEmptyLines: checked })
+              }
+            />
+            <Label>Remove Empty Lines</Label>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={formatRules.normalizeNewlines}
+              onCheckedChange={(checked) =>
+                onFormatRulesChange({ normalizeNewlines: checked })
+              }
+            />
+            <Label>Normalize Line Breaks</Label>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={formatRules.smartQuotes}
+              onCheckedChange={(checked) =>
+                onFormatRulesChange({ smartQuotes: checked })
+              }
+            />
+            <Label>Smart Quotes</Label>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={formatRules.capitalizeFirstLetter}
+              onCheckedChange={(checked) =>
+                onFormatRulesChange({ capitalizeFirstLetter: checked })
+              }
+            />
+            <Label>Capitalize First Letter</Label>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={formatRules.fixPunctuation}
+              onCheckedChange={(checked) =>
+                onFormatRulesChange({ fixPunctuation: checked })
+              }
+            />
+            <Label>Fix Punctuation</Label>
+          </div>
+        </div>
+        {/* Format Button */}
+        {/* <Button
+          className="w-full"
+          onClick={onFormatText}
+          disabled={isFormatting}
+        >
+          {isFormatting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Formatting...
+            </>
+          ) : (
+            "Format Text"
+          )}
+        </Button> */}
       </CardContent>
     </Card>
   );

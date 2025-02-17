@@ -3,19 +3,29 @@ import { FileText, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { parseFile } from "lib/fileParser";
-import type { TextFormatOptions } from "lib/textFormatter";
+import { TextFormatOptions } from "@/components/reader/type";
 
 interface FileViewerProps {
   file: File | null;
   formatOptions?: Partial<TextFormatOptions>;
+  content?: string;
 }
 
-const FileViewer: React.FC<FileViewerProps> = ({ file, formatOptions }) => {
+const FileViewer: React.FC<FileViewerProps> = ({
+  file,
+  formatOptions,
+  content: externalContent,
+}) => {
   const [content, setContent] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
 
   useEffect(() => {
+    if (externalContent !== undefined) {
+      setContent(externalContent);
+      return;
+    }
+
     const readFile = async () => {
       if (!file) {
         setContent("");
@@ -28,7 +38,6 @@ const FileViewer: React.FC<FileViewerProps> = ({ file, formatOptions }) => {
       try {
         const result = await parseFile(file, formatOptions);
         setContent(result.formattedContent);
-        setLoading(false);
       } catch (err) {
         console.error("Error reading file:", err);
         setError(
@@ -36,12 +45,24 @@ const FileViewer: React.FC<FileViewerProps> = ({ file, formatOptions }) => {
             ? err.message
             : "An error occurred while reading the file"
         );
+      } finally {
         setLoading(false);
       }
     };
 
     readFile();
-  }, [file, formatOptions]);
+  }, [file, formatOptions, externalContent]);
+
+  const contentStyle = {
+    fontSize: `${formatOptions?.fontSize || 16}px`,
+    fontFamily: formatOptions?.fontFamily || "inter",
+    textAlign: formatOptions?.alignment || "left",
+    backgroundColor: formatOptions?.backgroundColor || "#d2b48c",
+    whiteSpace: "pre-wrap" as const,
+    wordBreak: "break-word" as const,
+    padding: "1rem",
+    borderRadius: "0.5rem",
+  };
 
   if (!file) {
     return (
@@ -80,9 +101,7 @@ const FileViewer: React.FC<FileViewerProps> = ({ file, formatOptions }) => {
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         ) : (
-          <pre className="whitespace-pre-wrap break-words bg-muted p-4 rounded-lg text-sm">
-            {content}
-          </pre>
+          <pre style={contentStyle}>{content}</pre>
         )}
       </CardContent>
     </Card>

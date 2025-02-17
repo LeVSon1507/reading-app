@@ -2,6 +2,11 @@
 
 import { useState } from "react";
 import dynamic from "next/dynamic";
+import { cn } from "lib/utils";
+import { TextFormatOptions } from "@/components/reader/type";
+import { FormatRules, formatText } from "@/lib/helpers";
+import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const FileUpload = dynamic(() => import("@/components/reader/FileUpload"), {
   ssr: false,
@@ -17,106 +22,168 @@ const Controls = dynamic(() => import("@/components/reader/Controls"), {
 
 export default function HomePage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [analysisResult, setAnalysisResult] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [fileContent, setFileContent] = useState<string>("");
+  const [isFormatting, setIsFormatting] = useState(false);
+  const [formattedContent, setFormattedContent] = useState<string>("");
 
-  const handleFileSelect = (file: File) => {
+  const [formatOptions, setFormatOptions] = useState<TextFormatOptions>({
+    lineWidth: 80,
+    preserveParagraphs: true,
+    removeExtraSpaces: true,
+    normalizeNewlines: true,
+    smartQuotes: true,
+    normalizeUnicode: true,
+    preserveIndentation: true,
+    languageHint: "auto",
+    fontSize: 16,
+    alignment: "left",
+    fontFamily: "inter",
+    backgroundColor: "#d2b48c",
+  });
+
+  const [formatRules, setFormatRules] = useState<FormatRules>({
+    removeExtraSpaces: false,
+    normalizeNewlines: false,
+    smartQuotes: false,
+    capitalizeFirstLetter: false,
+    fixPunctuation: false,
+    removeEmptyLines: false,
+    trimLines: false,
+    lineWidth: 80,
+  });
+
+  //TODO: Setup LaunchDarkly feature flags later
+  const showAdvancedControls = true;
+  const enableAutoFormat = true;
+
+  const handleFileSelect = async (file: File) => {
     setSelectedFile(file);
-    setAnalysisResult(null); // Reset kết quả phân tích khi chọn file mới
-  };
-
-  const handleAnalyzeFile = async () => {
-    if (!selectedFile) return;
-
-    setLoading(true);
     try {
-      const formData = new FormData();
-      formData.append("file", selectedFile);
+      const content = await file.text();
+      setFileContent(content);
+      setFormattedContent(content);
 
-      const response = await fetch("/api/aim-llm", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to analyze file");
-      }
-
-      const data = await response.json();
-
-      if (data.success) {
-        setAnalysisResult(data.analysis);
-      } else {
-        alert("Failed to analyze file: " + data.error);
+      if (enableAutoFormat) {
+        await handleFormatText(content);
       }
     } catch (error) {
-      console.error("Error analyzing file:", error);
-      alert("An error occurred while analyzing the file.");
-    } finally {
-      setLoading(false);
+      console.error("Error reading file:", error);
     }
   };
 
-  return (
-    <div className="max-w-6xl mx-auto space-y-8">
-      {/* Header */}
-      <header className="bg-blue-500 text-white p-6 rounded-lg shadow-md">
-        <h1 className="text-3xl font-bold">AI Document Reader</h1>
-        <p className="text-sm mt-2">
-          Upload your file and let AI analyze it for you!
-        </p>
-      </header>
+  const handleFormatOptionsChange = (
+    key: keyof TextFormatOptions,
+    value: unknown
+  ) => {
+    setFormatOptions((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
 
-      {/* File Upload Section */}
-      <section className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-bold mb-4">Upload Your Document</h2>
+  const handleFormatText = async (content?: string) => {
+    const textToFormat = content || fileContent;
+    if (!textToFormat) return;
+
+    setIsFormatting(true);
+
+    try {
+      // Simulate async operation to show loading state
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      const formattedContent = formatText(textToFormat, formatRules);
+      setFormattedContent(formattedContent);
+      console.log("Formatting completed", { formattedContent });
+    } catch (error) {
+      console.error("Error formatting text:", error);
+    } finally {
+      setIsFormatting(false);
+    }
+  };
+
+  const handleFormatRulesChange = (newRules: Partial<FormatRules>) => {
+    setFormatRules((prev) => ({
+      ...prev,
+      ...newRules,
+    }));
+  };
+
+  return (
+    <div className="max-w-6xl mx-auto space-y-8 p-4">
+      <section
+        className={cn("bg-white rounded-lg shadow-md p-6", {
+          "border-2 border-blue-500": enableAutoFormat,
+        })}
+      >
+        <h1 className="text-2xl font-bold mb-4">Document Reader</h1>
+
         <FileUpload
           onFileSelect={handleFileSelect}
-          acceptedFileTypes={[".txt", ".pdf", ".doc", ".docx"]}
+          acceptedFileTypes={[".txt"]}
+          // acceptedFileTypes={[".txt", ".pdf", ".doc", ".docx"]}
         />
       </section>
 
-      {/* Analyze Button */}
-      {selectedFile && (
-        <section className="bg-white rounded-lg shadow-md p-6 flex justify-between items-center">
-          <div>
-            <h3 className="text-lg font-semibold">Selected File:</h3>
-            <p>{selectedFile.name}</p>
+      {showAdvancedControls && selectedFile && (
+        <section className="bg-white rounded-lg shadow-md p-6">
+          <div className="flex flex-col space-y-4">
+            <Controls
+              fontSize={formatOptions.fontSize}
+              setFontSize={(size) =>
+                handleFormatOptionsChange("fontSize", size)
+              }
+              alignment={formatOptions.alignment}
+              setAlignment={(align) =>
+                handleFormatOptionsChange("alignment", align)
+              }
+              fontFamily={formatOptions.fontFamily}
+              setFontFamily={(font) =>
+                handleFormatOptionsChange("fontFamily", font)
+              }
+              backgroundColor={formatOptions.backgroundColor}
+              setBackgroundColor={(color) =>
+                handleFormatOptionsChange("backgroundColor", color)
+              }
+              formatRules={formatRules}
+              onFormatRulesChange={handleFormatRulesChange}
+              onFormatText={handleFormatText}
+              isFormatting={isFormatting}
+            />
+
+            <Button
+              onClick={() => handleFormatText()}
+              disabled={isFormatting}
+              className="w-full"
+            >
+              {isFormatting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Formatting...
+                </>
+              ) : (
+                "Format Text"
+              )}
+            </Button>
           </div>
-          <button
-            onClick={handleAnalyzeFile}
-            disabled={loading}
-            className={`px-4 py-2 bg-blue-500 text-white rounded ${
-              loading ? "opacity-50 cursor-not-allowed" : ""
-            }`}
-          >
-            {loading ? "Analyzing..." : "Analyze File"}
-          </button>
         </section>
       )}
 
-      {/* Analysis Result */}
-      {analysisResult && (
-        <section className="bg-gray-100 rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-bold mb-4">Analysis Result</h2>
-          <p>{analysisResult}</p>
+      {selectedFile && (
+        <section className="bg-white rounded-lg shadow-md p-6">
+          {isFormatting ? (
+            <div className="flex items-center justify-center p-4">
+              <Loader2 className="h-8 w-8 animate-spin" />
+              <span className="ml-2">Formatting...</span>
+            </div>
+          ) : (
+            <FileViewer
+              file={selectedFile}
+              formatOptions={formatOptions}
+              content={formattedContent}
+            />
+          )}
         </section>
       )}
-
-      {/* Advanced Controls */}
-      <section className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-bold mb-4">Advanced Controls</h2>
-        <Controls
-          fontSize={16}
-          setFontSize={() => {}}
-          alignment="left"
-          setAlignment={() => {}}
-          fontFamily="inter"
-          setFontFamily={() => {}}
-          backgroundColor="#ffffff"
-          setBackgroundColor={() => {}}
-        />
-      </section>
     </div>
   );
 }
