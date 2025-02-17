@@ -41,6 +41,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { predefinedTextColors } from "@/components/reader/constants";
+import Image from "next/image";
 
 interface FileViewerProps {
   file: File | null;
@@ -382,7 +383,13 @@ const FileViewer: React.FC<FileViewerProps> = ({
         <Tooltip>
           <TooltipTrigger>
             <h2 className="text-xl font-semibold flex items-center gap-2">
-              <FileText className="w-5 h-5" />
+              <Image
+                src="/text.svg"
+                alt="Text File Name Icon"
+                width={25}
+                height={25}
+                className="text-primary"
+              />
               <span className="truncate max-w-[300px]">{displayName}</span>
             </h2>
           </TooltipTrigger>
