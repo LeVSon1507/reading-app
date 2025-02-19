@@ -64,3 +64,8 @@
     @apply bg-background text-foreground;
   }
 }
+
+.reduce-motion * {
+  transition: none !important;
+  animation: none !important;
+}

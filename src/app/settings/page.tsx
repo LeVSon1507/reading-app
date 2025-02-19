@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -21,8 +22,173 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Moon } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
+
+export interface Settings {
+  appearance: {
+    darkMode: boolean;
+    fontFamily: string;
+    fontSize: number;
+    compactMode: boolean;
+    showSidebar: boolean;
+  };
+  reading: {
+    lineSpacing: string;
+    textWidth: number;
+    autoScroll: boolean;
+    smartQuotes: boolean;
+    autoHyphenation: boolean;
+    linkDetection: boolean;
+  };
+  notifications: {
+    pushNotifications: boolean;
+    emailUpdates: boolean;
+    readingReminders: boolean;
+  };
+  accessibility: {
+    highContrast: boolean;
+    motionReduction: boolean;
+    screenReader: boolean;
+  };
+}
+
+const defaultSettings: Settings = {
+  appearance: {
+    darkMode: false,
+    fontFamily: "inter",
+    fontSize: 16,
+    compactMode: false,
+    showSidebar: true,
+  },
+  reading: {
+    lineSpacing: "1.5",
+    textWidth: 720,
+    autoScroll: false,
+    smartQuotes: false,
+    autoHyphenation: false,
+    linkDetection: true,
+  },
+  notifications: {
+    pushNotifications: false,
+    emailUpdates: false,
+    readingReminders: false,
+  },
+  accessibility: {
+    highContrast: false,
+    motionReduction: false,
+    screenReader: false,
+  },
+};
 
 export default function SettingsPage() {
+  const [settings, setSettings] = useState<Settings>(defaultSettings);
+  const { toast } = useToast();
+
+  // Load settings from localStorage on mount
+  useEffect(() => {
+    const savedSettings = localStorage.getItem("appSettings");
+    if (savedSettings) {
+      setSettings(JSON.parse(savedSettings));
+    }
+  }, []);
+
+  // Save settings to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem("appSettings", JSON.stringify(settings));
+  }, [settings]);
+
+  // Update appearance settings
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const updateAppearance = (key: keyof Settings["appearance"], value: any) => {
+    setSettings((prev) => ({
+      ...prev,
+      appearance: { ...prev.appearance, [key]: value },
+    }));
+
+    // Apply dark mode
+    if (key === "darkMode") {
+      document.documentElement.classList.toggle("dark", value);
+    }
+
+    // Apply font family
+    if (key === "fontFamily") {
+      document.documentElement.style.fontFamily = value;
+    }
+
+    // Apply font size
+    if (key === "fontSize") {
+      document.documentElement.style.fontSize = `${value}px`;
+    }
+
+    toast({
+      title: "Settings Updated",
+      description: "Your appearance settings have been saved.",
+    });
+  };
+
+  // Update reading settings
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const updateReading = (key: keyof Settings["reading"], value: any) => {
+    setSettings((prev) => ({
+      ...prev,
+      reading: { ...prev.reading, [key]: value },
+    }));
+
+    toast({
+      title: "Settings Updated",
+      description: "Your reading settings have been saved.",
+    });
+  };
+
+  // Update notification settings
+  const updateNotifications = (
+    key: keyof Settings["notifications"],
+    value: boolean
+  ) => {
+    setSettings((prev) => ({
+      ...prev,
+      notifications: { ...prev.notifications, [key]: value },
+    }));
+
+    if (value) {
+      // Request notification permissions if enabled
+      if ("Notification" in window) {
+        Notification.requestPermission();
+      }
+    }
+
+    toast({
+      title: "Settings Updated",
+      description: "Your notification settings have been saved.",
+    });
+  };
+
+  // Update accessibility settings
+  const updateAccessibility = (
+    key: keyof Settings["accessibility"],
+    value: boolean
+  ) => {
+    setSettings((prev) => ({
+      ...prev,
+      accessibility: { ...prev.accessibility, [key]: value },
+    }));
+
+    // Apply high contrast
+    if (key === "highContrast") {
+      document.documentElement.classList.toggle("high-contrast", value);
+    }
+
+    // Apply reduced motion
+    if (key === "motionReduction") {
+      document.documentElement.classList.toggle("reduce-motion", value);
+    }
+
+    toast({
+      title: "Settings Updated",
+      description: "Your accessibility settings have been saved.",
+    });
+  };
+
   return (
     <div className="container mx-auto p-4 py-8">
       <div className="max-w-4xl mx-auto space-y-8">
@@ -61,7 +227,12 @@ export default function SettingsPage() {
                         </p>
                       </div>
                     </div>
-                    <Switch />
+                    <Switch
+                      checked={settings.appearance.darkMode}
+                      onCheckedChange={(checked) =>
+                        updateAppearance("darkMode", checked)
+                      }
+                    />
                   </div>
 
                   <Separator />
@@ -69,7 +240,12 @@ export default function SettingsPage() {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <Label>Font Family</Label>
-                      <Select defaultValue="inter">
+                      <Select
+                        value={settings.appearance.fontFamily}
+                        onValueChange={(value) =>
+                          updateAppearance("fontFamily", value)
+                        }
+                      >
                         <SelectTrigger className="w-[180px]">
                           <SelectValue placeholder="Select font" />
                         </SelectTrigger>
@@ -85,10 +261,18 @@ export default function SettingsPage() {
                       <div className="flex items-center justify-between">
                         <Label>Font Size</Label>
                         <span className="text-sm text-muted-foreground">
-                          16px
+                          {settings.appearance.fontSize}px
                         </span>
                       </div>
-                      <Slider defaultValue={[16]} max={24} min={12} step={1} />
+                      <Slider
+                        value={[settings.appearance.fontSize]}
+                        onValueChange={([value]) =>
+                          updateAppearance("fontSize", value)
+                        }
+                        max={24}
+                        min={12}
+                        step={1}
+                      />
                     </div>
                   </div>
                 </CardContent>
@@ -107,7 +291,12 @@ export default function SettingsPage() {
                         Reduce spacing between elements
                       </p>
                     </div>
-                    <Switch />
+                    <Switch
+                      checked={settings.appearance.compactMode}
+                      onCheckedChange={(checked) =>
+                        updateAppearance("compactMode", checked)
+                      }
+                    />
                   </div>
 
                   <div className="flex items-center justify-between">
@@ -117,13 +306,19 @@ export default function SettingsPage() {
                         Toggle sidebar visibility
                       </p>
                     </div>
-                    <Switch defaultChecked />
+                    <Switch
+                      checked={settings.appearance.showSidebar}
+                      onCheckedChange={(checked) =>
+                        updateAppearance("showSidebar", checked)
+                      }
+                    />
                   </div>
                 </CardContent>
               </Card>
             </div>
           </TabsContent>
 
+          {/* Reading Tab Content */}
           <TabsContent value="reading">
             <Card>
               <CardHeader>
@@ -141,7 +336,12 @@ export default function SettingsPage() {
                         Adjust space between lines
                       </p>
                     </div>
-                    <Select defaultValue="1.5">
+                    <Select
+                      value={settings.reading.lineSpacing}
+                      onValueChange={(value) =>
+                        updateReading("lineSpacing", value)
+                      }
+                    >
                       <SelectTrigger className="w-[180px]">
                         <SelectValue placeholder="Select spacing" />
                       </SelectTrigger>
@@ -157,11 +357,14 @@ export default function SettingsPage() {
                     <div className="flex items-center justify-between">
                       <Label>Text Width</Label>
                       <span className="text-sm text-muted-foreground">
-                        720px
+                        {settings.reading.textWidth}px
                       </span>
                     </div>
                     <Slider
-                      defaultValue={[720]}
+                      value={[settings.reading.textWidth]}
+                      onValueChange={([value]) =>
+                        updateReading("textWidth", value)
+                      }
                       max={1200}
                       min={400}
                       step={10}
@@ -175,7 +378,12 @@ export default function SettingsPage() {
                         Enable automatic scrolling
                       </p>
                     </div>
-                    <Switch />
+                    <Switch
+                      checked={settings.reading.autoScroll}
+                      onCheckedChange={(checked) =>
+                        updateReading("autoScroll", checked)
+                      }
+                    />
                   </div>
                 </div>
 
@@ -186,15 +394,30 @@ export default function SettingsPage() {
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <Label>Smart Quotes</Label>
-                      <Toggle />
+                      <Toggle
+                        pressed={settings.reading.smartQuotes}
+                        onPressedChange={(pressed) =>
+                          updateReading("smartQuotes", pressed)
+                        }
+                      />
                     </div>
                     <div className="flex items-center justify-between">
                       <Label>Auto Hyphenation</Label>
-                      <Toggle />
+                      <Toggle
+                        pressed={settings.reading.autoHyphenation}
+                        onPressedChange={(pressed) =>
+                          updateReading("autoHyphenation", pressed)
+                        }
+                      />
                     </div>
                     <div className="flex items-center justify-between">
                       <Label>Link Detection</Label>
-                      <Toggle defaultPressed />
+                      <Toggle
+                        pressed={settings.reading.linkDetection}
+                        onPressedChange={(pressed) =>
+                          updateReading("linkDetection", pressed)
+                        }
+                      />
                     </div>
                   </div>
                 </div>
@@ -202,6 +425,7 @@ export default function SettingsPage() {
             </Card>
           </TabsContent>
 
+          {/* Notifications Tab Content */}
           <TabsContent value="notifications">
             <Card>
               <CardHeader>
@@ -219,7 +443,12 @@ export default function SettingsPage() {
                         Receive push notifications
                       </p>
                     </div>
-                    <Switch />
+                    <Switch
+                      checked={settings.notifications.pushNotifications}
+                      onCheckedChange={(checked) =>
+                        updateNotifications("pushNotifications", checked)
+                      }
+                    />
                   </div>
 
                   <div className="flex items-center justify-between">
@@ -229,7 +458,12 @@ export default function SettingsPage() {
                         Receive email notifications
                       </p>
                     </div>
-                    <Switch />
+                    <Switch
+                      checked={settings.notifications.emailUpdates}
+                      onCheckedChange={(checked) =>
+                        updateNotifications("emailUpdates", checked)
+                      }
+                    />
                   </div>
 
                   <div className="flex items-center justify-between">
@@ -239,13 +473,19 @@ export default function SettingsPage() {
                         Get reminded about unfinished readings
                       </p>
                     </div>
-                    <Switch />
+                    <Switch
+                      checked={settings.notifications.readingReminders}
+                      onCheckedChange={(checked) =>
+                        updateNotifications("readingReminders", checked)
+                      }
+                    />
                   </div>
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
 
+          {/* Accessibility Tab Content */}
           <TabsContent value="accessibility">
             <Card>
               <CardHeader>
@@ -263,17 +503,27 @@ export default function SettingsPage() {
                         Increase text contrast
                       </p>
                     </div>
-                    <Switch />
+                    <Switch
+                      checked={settings.accessibility.highContrast}
+                      onCheckedChange={(checked) =>
+                        updateAccessibility("highContrast", checked)
+                      }
+                    />
                   </div>
 
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
                       <Label>Motion Reduction</Label>
                       <p className="text-sm text-muted-foreground">
                         Reduce animation effects
                       </p>
                     </div>
-                    <Switch />
+                    <Switch
+                      checked={settings.accessibility.motionReduction}
+                      onCheckedChange={(checked) =>
+                        updateAccessibility("motionReduction", checked)
+                      }
+                    />
                   </div>
 
                   <div className="flex items-center justify-between">
@@ -283,7 +533,12 @@ export default function SettingsPage() {
                         Optimize content for screen readers
                       </p>
                     </div>
-                    <Switch />
+                    <Switch
+                      checked={settings.accessibility.screenReader}
+                      onCheckedChange={(checked) =>
+                        updateAccessibility("screenReader", checked)
+                      }
+                    />
                   </div>
                 </div>
               </CardContent>

@@ -18,12 +18,10 @@ const Header = () => {
     path,
     iconSrc,
     label,
-    className = "",
   }: {
     path: string;
     iconSrc: string;
     label: string;
-    className?: string;
   }) => (
     <TooltipProvider>
       <Tooltip>
@@ -31,23 +29,16 @@ const Header = () => {
           <Button
             onClick={() => router.push(path)}
             variant="ghost"
-            className={`relative group ${className}`}
+            className="text-sm font-medium"
           >
-            <Image
-              width={40}
-              height={40}
-              src={iconSrc}
-              alt={`${label} Icon`}
-              className="transition-transform group-hover:scale-105"
-            />
-            <span className="hidden md:inline-block ml-2">{label}</span>
+            {label}
           </Button>
         </TooltipTrigger>
         <TooltipContent side="bottom" className="p-4">
           <div className="space-y-2">
             <Image
-              width={100}
-              height={100}
+              width={150}
+              height={150}
               src={iconSrc}
               alt={`${label} Icon Large`}
               className="mx-auto"
@@ -63,7 +54,6 @@ const Header = () => {
     <header className="border-b">
       <div className="container mx-auto px-4 h-16">
         <div className="flex items-center justify-between h-full">
-          {/* Logo and App Name */}
           <div
             className="flex items-center space-x-2 cursor-pointer"
             onClick={() => router.push("/")}
@@ -78,7 +68,6 @@ const Header = () => {
             <h1 className="text-2xl font-bold text-[#d2b48c]">Reading App</h1>
           </div>
 
-          {/* Right side links */}
           <div className="flex items-center space-x-4">
             <nav className="flex items-center space-x-2">
               <NavButton path="/docs" iconSrc="/docs.svg" label="Documents" />
@@ -87,7 +76,6 @@ const Header = () => {
                 path="/settings"
                 iconSrc="/settings.svg"
                 label="Settings"
-                className="!p-2"
               />
             </nav>
           </div>

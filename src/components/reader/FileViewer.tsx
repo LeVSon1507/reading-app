@@ -348,7 +348,7 @@ const FileViewer: React.FC<FileViewerProps> = ({
             </h2>
           </TooltipTrigger>
           <TooltipContent>
-            <p>{name}</p>
+            <p className="text-xl">{name}</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>

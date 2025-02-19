@@ -10,26 +10,50 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { FileText, Type, Palette } from "lucide-react";
+import Image from "next/image";
 
 const features = [
   {
     title: "File Support",
     description:
       "Upload and read text files with support for various encodings",
-    icon: <FileText className="h-5 w-5 mt-1" />,
+    icon: (
+      <Image
+        width={120}
+        height={120}
+        src={"/filetext.svg"}
+        alt="Docs Icon"
+        about="Docs Icon"
+      />
+    ),
   },
   {
     title: "Text Formatting",
     description:
       "Advanced text formatting options including spacing, quotes, and line width",
-    icon: <Type className="h-5 w-5 mt-1" />,
+    icon: (
+      <Image
+        width={120}
+        height={120}
+        src={"/textcolor.svg"}
+        alt="Text color Icon"
+        about="Text color Icon"
+      />
+    ),
   },
   {
     title: "Customization",
     description:
       "Customize fonts, colors, and layout to match your preferences",
-    icon: <Palette className="h-5 w-5 mt-1" />,
+    icon: (
+      <Image
+        width={120}
+        height={120}
+        src={"/customize.svg"}
+        alt="Customize Icon"
+        about="Customize Icon"
+      />
+    ),
   },
 ];
 
@@ -91,10 +115,20 @@ export default function DocsPage() {
               <div className="space-y-2">
                 <h3 className="text-lg font-semibold">Upload Files</h3>
                 <div className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  <p>Currently supports .txt files</p>
+                  <Image
+                    width={120}
+                    height={120}
+                    src={"/filetext.svg"}
+                    alt="Docs Icon"
+                    about="Docs Icon"
+                  />
+                  {/* <FileText className="h-5 w-5" /> */}
+                  <p className="ml-2">
+                    Currently supports{" "}
+                    <span className="font-semibold">.txt</span> files
+                  </p>
                 </div>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-base text-muted-foreground">
                   Drag and drop your file into the upload area or click to
                   browse files. The app will automatically load and display your
                   text content.
@@ -103,7 +137,7 @@ export default function DocsPage() {
 
               <div className="space-y-2">
                 <h3 className="text-lg font-semibold">Basic Navigation</h3>
-                <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
+                <ul className="list-disc list-inside text-base text-muted-foreground space-y-1">
                   <li>Use the top toolbar to access formatting options</li>
                   <li>Scroll through your text in the main viewing area</li>
                   <li>Adjust display settings using the control panel</li>
@@ -125,10 +159,10 @@ export default function DocsPage() {
               <div className="grid gap-4">
                 {features.map((feature) => (
                   <div key={feature.title} className="flex items-start gap-4">
-                    {feature.icon}
+                    <div className="mb-4">{feature.icon}</div>
                     <div>
-                      <h3 className="font-semibold">{feature.title}</h3>
-                      <p className="text-sm text-muted-foreground">
+                      <h1 className="font-semibold text-xl">{feature.title}</h1>
+                      <p className="text-base text-muted-foreground">
                         {feature.description}
                       </p>
                     </div>
@@ -170,7 +204,7 @@ export default function DocsPage() {
         <TabsContent value="customization">
           <Card>
             <CardHeader>
-              <CardTitle>Text customization</CardTitle>
+              <CardTitle>Text Customization</CardTitle>
               <CardDescription>
                 Learn about available text customization features
               </CardDescription>
