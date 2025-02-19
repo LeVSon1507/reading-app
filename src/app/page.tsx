@@ -91,7 +91,7 @@ export default function HomePage() {
 
     try {
       // Simulate async operation to show loading state
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 200));
 
       const formattedContent = formatText(textToFormat, formatRules);
       setFormattedContent(formattedContent);

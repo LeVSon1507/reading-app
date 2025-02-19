@@ -1,7 +1,15 @@
 "use client";
 
 import React from "react";
-import { Heart, Instagram, Linkedin, Mail, MapPin, Phone } from "lucide-react";
+import {
+  Heart,
+  Instagram,
+  Linkedin,
+  Mail,
+  MapPin,
+  Phone,
+  Github,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -29,6 +37,11 @@ const Footer = () => {
       icon: Mail,
       href: "mailto:sonlvs1507@gmail.com",
       label: "Email",
+    },
+    {
+      icon: Github,
+      href: "https://github.com/LeVSon1507",
+      label: "Github",
     },
   ];
 

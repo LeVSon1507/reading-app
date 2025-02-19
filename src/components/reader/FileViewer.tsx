@@ -35,13 +35,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { predefinedTextColors } from "@/components/reader/constants";
 import Image from "next/image";
+import ColorPicker from "@/components/shared/ColorPicker";
 
 interface FileViewerProps {
   file: File | null;
@@ -155,65 +151,22 @@ const FileViewer: React.FC<FileViewerProps> = ({
               </SelectContent>
             </Select>
 
-            {/* Text Color */}
-            <div className="flex items-center gap-2">
-              <Popover>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="relative"
-                        >
-                          <Type className="w-4 h-4" />
-                          <div
-                            className="absolute bottom-0 right-0 w-2 h-2 rounded-full border border-muted"
-                            style={{ backgroundColor: formatOptions.textColor }}
-                          />
-                        </Button>
-                      </PopoverTrigger>
-                    </TooltipTrigger>
-                    <TooltipContent>Change text color</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                <PopoverContent className="w-64">
-                  <div className="grid grid-cols-4 gap-2">
-                    {predefinedTextColors.map((color) => (
-                      <TooltipProvider key={color.value}>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              className="w-12 h-12 rounded-md relative"
-                              style={{ backgroundColor: color.value }}
-                              onClick={() => {
-                                setFormatOptions({
-                                  ...formatOptions,
-                                  textColor: color.value,
-                                });
-                              }}
-                            >
-                              {formatOptions.textColor === color.value && (
-                                <div className="absolute inset-0 border-2 border-primary rounded-md" />
-                              )}
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>{color.name}</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    ))}
-                  </div>
-                </PopoverContent>
-              </Popover>
-            </div>
+            {/* Text Color Refactor */}
 
+            <ColorPicker
+              icon={<Type className="w-4 h-4" />}
+              tooltip="Change text color"
+              selectedColor={formatOptions.textColor}
+              colors={predefinedTextColors}
+              onColorChange={(color) =>
+                setFormatOptions({ ...formatOptions, textColor: color })
+              }
+            />
             <div className="flex items-center gap-1">
               <Button
                 variant="ghost"
                 size="sm"
+                suppressHydrationWarning
                 className="h-8 w-8 text-foreground hover:text-foreground"
                 onClick={() =>
                   setFormatOptions({
@@ -230,6 +183,7 @@ const FileViewer: React.FC<FileViewerProps> = ({
               <Button
                 variant="ghost"
                 size="sm"
+                suppressHydrationWarning
                 className="h-8 w-8 text-foreground hover:text-foreground"
                 onClick={() =>
                   setFormatOptions({

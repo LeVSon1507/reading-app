@@ -24,11 +24,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { FormatRules } from "@/lib/helpers";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -36,6 +31,7 @@ import {
   predefinedColors,
   predefinedTextColors,
 } from "@/components/reader/constants";
+import ColorPicker from "@/components/shared/ColorPicker";
 
 export interface ControlsProps {
   removeExtraSpaces?: boolean;
@@ -190,98 +186,23 @@ const Controls: React.FC<ControlsProps> = ({
           </TooltipProvider>
         </div>
         {/* Text Color */}
-        <div className="flex items-center gap-2">
-          <Popover>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" size="icon" className="relative">
-                      <Type className="w-4 h-4" />
-                      <div
-                        className="absolute bottom-0 right-0 w-2 h-2 rounded-full border border-muted"
-                        style={{ backgroundColor: textColor }}
-                      />
-                    </Button>
-                  </PopoverTrigger>
-                </TooltipTrigger>
-                <TooltipContent>Change text color</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <PopoverContent className="w-64">
-              <div className="grid grid-cols-4 gap-2">
-                {predefinedTextColors.map((color) => (
-                  <TooltipProvider key={color.value}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="w-12 h-12 rounded-md relative"
-                          style={{ backgroundColor: color.value }}
-                          onClick={() => setTextColor(color.value)}
-                        >
-                          {textColor === color.value && (
-                            <div className="absolute inset-0 border-2 border-primary rounded-md" />
-                          )}
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>{color.name}</TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                ))}
-              </div>
-            </PopoverContent>
-          </Popover>
-        </div>
+        <ColorPicker
+          icon={<Type className="w-4 h-4" />}
+          tooltip="Change text color"
+          selectedColor={textColor}
+          colors={predefinedTextColors}
+          onColorChange={setTextColor}
+        />
 
         {/* Background Color Picker */}
-        <div className="flex items-center gap-2">
-          <Popover>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" size="icon" className="relative">
-                      <Palette className="w-4 h-4" />
-                      <div
-                        className="absolute bottom-0 right-0 w-2 h-2 rounded-full border border-muted"
-                        style={{ backgroundColor }}
-                      />
-                    </Button>
-                  </PopoverTrigger>
-                </TooltipTrigger>
-                <TooltipContent>Change background color</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <PopoverContent className="w-64">
-              <div className="grid grid-cols-4 gap-2">
-                {predefinedColors.map((color) => (
-                  <TooltipProvider key={color.value}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="w-12 h-12 rounded-md relative"
-                          style={{ backgroundColor: color.value }}
-                          onClick={() => {
-                            setBackgroundColor(color.value);
-                          }}
-                        >
-                          {backgroundColor === color.value && (
-                            <div className="absolute inset-0 border-2 border-primary rounded-md" />
-                          )}
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>{color.name}</TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                ))}
-              </div>
-            </PopoverContent>
-          </Popover>
-        </div>
+        <ColorPicker
+          icon={<Palette className="w-4 h-4" />}
+          tooltip="Change background color"
+          selectedColor={backgroundColor}
+          colors={predefinedColors}
+          onColorChange={setBackgroundColor}
+        />
+
         {/* Format Options */}
         <div className="grid grid-cols-2 gap-4">
           <div className="flex items-center gap-2">

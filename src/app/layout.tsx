@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "../styles/globals.css";
-import { LaunchDarklyProvider } from "./providers/LaunchDarklyProvider";
+import { LaunchDarklyProvider } from "../providers/LaunchDarklyProvider";
 import Header from "components/shared/Header";
 import Footer from "components/shared/Footer";
 
