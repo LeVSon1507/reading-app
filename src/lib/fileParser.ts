@@ -143,7 +143,7 @@ export const parseDocxFile = async (
   }
 };
 
-export const parseFile = async (
+export const parseFile2 = async (
   file: File,
   formatOptions?: Partial<TextFormatOptions>
 ): Promise<ParsedFileResult> => {
@@ -165,3 +165,102 @@ export const parseFile = async (
       throw new Error("Unsupported file type");
   }
 };
+
+// lib/fileParser.js
+import { PDFDocument } from "pdf-lib";
+import epub from "epubjs";
+
+async function getTextContent(pdfPage) {
+  const content = await pdfPage.getTextContent();
+  return content.items.map((item) => item.str).join(" ");
+}
+
+export async function getEncoding(file) {
+  try {
+    const reader = new FileReader();
+    reader.readAsText(file, "utf-8"); // Try UTF-8 first
+    await new Promise((resolve) => (reader.onload = resolve));
+    const text = reader.result as string;
+
+    // Look for encoding declaration (example for HTML):
+    const match = text.match(/<meta.*?charset=["']?([^"'\s]+)["']?/i);
+    if (match) {
+      return match[1];
+    }
+    return null; // No encoding found
+  } catch (error) {
+    console.log("🚀 ~ getEncoding ~ error:", error);
+    return null; // Error reading file
+  }
+}
+
+export async function parseFile(file) {
+  // Removed formatOptions parameter, not needed here
+  const fileType = file.name.split(".").pop().toLowerCase();
+  let formattedContent = "";
+
+  try {
+    switch (fileType) {
+      case "pdf":
+        const pdfBytes = await file.arrayBuffer();
+        const pdfDoc = await PDFDocument.load(pdfBytes);
+        const pages = pdfDoc.getPages();
+
+        // The correct way to extract text from PDF pages (using async/await):
+        const textPromises = pages.map(getTextContent);
+        const textArray = await Promise.all(textPromises);
+        formattedContent = textArray.join("\n"); // Join the text from all pages
+        break;
+
+      case "docx":
+        const docxBytes = await file.arrayBuffer();
+        const { value } = await mammoth.convertToHtml({
+          arrayBuffer: docxBytes,
+        });
+        formattedContent = value;
+        break;
+
+      case "epub":
+        const epubBytes = await file.arrayBuffer();
+        const book = epub(epubBytes);
+        await book.ready;
+
+        // Display all chapters or choose which ones you want to display
+        let allContent = "";
+        for (let i = 1; i <= +book.spine.get("length"); i++) {
+          // Loop through spine items (chapters)
+          const rendition = book.renderTo("body", {
+            width: "100%",
+            height: "100%",
+            spread: "none", // To prevent two pages from displaying
+            flow: "scrolled", // Ensure vertical scrolling
+          });
+          await rendition.display(i);
+
+          // Extract the content after rendering:
+          const chapterContent = document.body.innerHTML; // Get HTML content after it's rendered.
+          allContent += chapterContent; // Append to a single string
+          rendition.destroy(); // Clear up memory after reading chapter
+        }
+
+        formattedContent = allContent;
+        book.destroy();
+        break;
+
+      case "html":
+      case "txt":
+      case "rtf":
+      case "mobi":
+        formattedContent = await file.text();
+        break;
+
+      default:
+        throw new Error("Unsupported file type");
+    }
+  } catch (error) {
+    console.error("Error parsing file:", error);
+    throw error; // Re-throw the error to be handled by the caller
+  }
+
+  return { formattedContent };
+}

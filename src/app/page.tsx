@@ -130,7 +130,18 @@ export default function HomePage() {
 
         <FileUpload
           onFileSelect={handleFileSelect}
-          acceptedFileTypes={[".txt"]}
+          // acceptedFileTypes={[".txt"]}
+          acceptedFileTypes={[
+            ".txt",
+            ".pdf",
+            ".doc",
+            ".docx",
+            ".epub",
+            ".mobi",
+            ".html",
+            ".rtf",
+          ]}
+
           // acceptedFileTypes={[".txt", ".pdf", ".doc", ".docx"]}
         />
       </section>

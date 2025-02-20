@@ -54,6 +54,7 @@ const FileViewer: React.FC<FileViewerProps> = ({
   maxHeight = "70vh",
   textColor: textColorProps,
 }) => {
+  console.log("🚀 ~ content:", externalContent);
   const [content, setContent] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
@@ -85,7 +86,7 @@ const FileViewer: React.FC<FileViewerProps> = ({
       setError("");
 
       try {
-        const result = await parseFile(file, formatOptions);
+        const result = await parseFile(file);
         setContent(result.formattedContent);
       } catch (err) {
         console.error("Error reading file:", err);
