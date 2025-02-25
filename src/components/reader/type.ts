@@ -9,6 +9,7 @@ export interface TextFormatMetadata {
   languageDetected: string;
 }
 
+
 export interface TextFormatOptions {
   // Text Content Formatting
   lineWidth: number; // Maximum characters per line
