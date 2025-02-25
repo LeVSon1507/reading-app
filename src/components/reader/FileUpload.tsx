@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "lib/utils";
 import Image from "next/image";
+import { toast } from "react-toastify";
 
 interface FileUploadProps {
   onFileSelect: (file: File) => void;
@@ -29,6 +30,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
     (acceptedFiles: File[]) => {
       if (acceptedFiles.length > 0) {
         onFileSelect(acceptedFiles[0]);
+        toast.success("File uploaded successfully!");
       }
     },
     [onFileSelect]
