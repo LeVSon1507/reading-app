@@ -54,7 +54,6 @@ const FileViewer: React.FC<FileViewerProps> = ({
   maxHeight = "70vh",
   textColor: textColorProps,
 }) => {
-  console.log("🚀 ~ content:", externalContent);
   const [content, setContent] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");

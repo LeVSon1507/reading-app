@@ -22,7 +22,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Moon } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "react-toastify";
 
 export interface Settings {
   appearance: {
@@ -82,7 +82,7 @@ const defaultSettings: Settings = {
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Settings>(defaultSettings);
-  const { toast } = useToast();
+  // const { toast } = useToast();
 
   // Load settings from localStorage on mount
   useEffect(() => {
@@ -120,10 +120,7 @@ export default function SettingsPage() {
       document.documentElement.style.fontSize = `${value}px`;
     }
 
-    toast({
-      title: "Settings Updated",
-      description: "Your appearance settings have been saved.",
-    });
+    toast.success("Your appearance settings have been saved.");
   };
 
   // Update reading settings
@@ -133,11 +130,7 @@ export default function SettingsPage() {
       ...prev,
       reading: { ...prev.reading, [key]: value },
     }));
-
-    toast({
-      title: "Settings Updated",
-      description: "Your reading settings have been saved.",
-    });
+    toast.success("Your reading settings have been saved.");
   };
 
   // Update notification settings
@@ -157,10 +150,7 @@ export default function SettingsPage() {
       }
     }
 
-    toast({
-      title: "Settings Updated",
-      description: "Your notification settings have been saved.",
-    });
+    toast.success("Your notification settings have been saved.");
   };
 
   // Update accessibility settings
@@ -183,10 +173,7 @@ export default function SettingsPage() {
       document.documentElement.classList.toggle("reduce-motion", value);
     }
 
-    toast({
-      title: "Settings Updated",
-      description: "Your accessibility settings have been saved.",
-    });
+    toast.success("Your accessibility settings have been saved.");
   };
 
   return (

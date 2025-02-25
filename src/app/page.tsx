@@ -8,6 +8,7 @@ import { FormatRules, formatText } from "@/lib/helpers";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import { useFormat } from "@/contexts/FormatContext";
 
 const FileUpload = dynamic(() => import("@/components/reader/FileUpload"), {
   ssr: false,
@@ -26,33 +27,11 @@ export default function HomePage() {
   const [fileContent, setFileContent] = useState<string>("");
   const [isFormatting, setIsFormatting] = useState(false);
   const [formattedContent, setFormattedContent] = useState<string>("");
-
-  const [formatOptions, setFormatOptions] = useState<TextFormatOptions>({
-    lineWidth: 80,
-    preserveParagraphs: true,
-    removeExtraSpaces: true,
-    normalizeNewlines: true,
-    smartQuotes: true,
-    normalizeUnicode: true,
-    preserveIndentation: true,
-    languageHint: "auto",
-    fontSize: 16,
-    alignment: "left",
-    fontFamily: "inter",
-    backgroundColor: "#d2b48c",
-    textColor: "#000000",
-  });
-
-  const [formatRules, setFormatRules] = useState<FormatRules>({
-    removeExtraSpaces: false,
-    normalizeNewlines: false,
-    smartQuotes: false,
-    capitalizeFirstLetter: false,
-    fixPunctuation: false,
-    removeEmptyLines: false,
-    trimLines: false,
-    lineWidth: 80,
-  });
+  const { formats, setFormats } = useFormat();
+  const { formatOptions, formatRules } = formats as {
+    formatOptions: TextFormatOptions;
+    formatRules: FormatRules;
+  };
 
   //TODO: Setup LaunchDarkly feature flags later
   const showAdvancedControls = true;
@@ -77,9 +56,12 @@ export default function HomePage() {
     key: keyof TextFormatOptions,
     value: unknown
   ) => {
-    setFormatOptions((prev) => ({
+    setFormats((prev) => ({
       ...prev,
-      [key]: value,
+      formatOptions: {
+        ...prev.formatOptions,
+        [key]: value,
+      },
     }));
   };
 
@@ -104,9 +86,12 @@ export default function HomePage() {
   };
 
   const handleFormatRulesChange = (newRules: Partial<FormatRules>) => {
-    setFormatRules((prev) => ({
+    setFormats((prev) => ({
       ...prev,
-      ...newRules,
+      formatRules: {
+        ...prev.formatRules,
+        ...newRules,
+      },
     }));
   };
 
